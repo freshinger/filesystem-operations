@@ -1,0 +1,10 @@
+{% extends "_baseLayout.html" %}
+
+{% block main %}
+  {% if message.length > 0 %}
+    Your Message is only for you and has been deleted from the server:
+    {{ message }}
+  {% else %}
+    There is no Message for you at the moment!
+  {% endif %}
+{% endblock %}
