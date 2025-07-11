@@ -4,10 +4,26 @@ import { addLogMessage } from "../middlewares/loggerMiddleware";
 import { v4 as uuidv4 } from "uuid";
 import * as fruits from "../data/fruits.json";
 
+interface disposableMessage {
+  message: string;
+  countdown: number;
+}
+
+class burnMessage implements disposableMessage {
+  message: string;
+  countdown: number = 1;
+  constructor(message: string) {
+    this.message = message;
+    if (process.env.MESSAGE_TIMER) {
+      this.countdown = Number.parseInt(process.env.MESSAGE_TIMER);
+    }
+  }
+}
+
 export class MessageService {
   private PATH = path.join(__dirname, "..", "..", "messages");
 
-  async getMessage(messageId: string): Promise<string> {
+  async getMessage(messageId: string): Promise<burnMessage | null> {
     return this.MessageExists(messageId)
       .then(
         async (messageExists: boolean) => {
@@ -15,26 +31,29 @@ export class MessageService {
             await addLogMessage(
               "Message with id: " + messageId + " is nonexistent",
             );
-            return "nonexistent";
+            return null;
           } else {
             return await this.readMessage(messageId);
           }
         },
         () => {
-          return "rejected";
+          return null;
         },
       )
       .then(
         async (message) => {
-          if (typeof message !== undefined) {
-            await this.deleteMessage(messageId);
+          await this.updateMessage(messageId);
+          if (message && typeof message.countdown !== undefined) {
+            if (message?.countdown < 1) {
+              await this.deleteMessage(messageId);
+            }
             return message;
           } else {
-            return "undefined";
+            return null;
           }
         },
         () => {
-          return "rejected";
+          return null;
         },
       )
       .catch(async (error) => {
@@ -46,30 +65,61 @@ export class MessageService {
 
   async MessageExists(messageId: string): Promise<boolean> {
     try {
-      await access(this.PATH + "/" + messageId + ".txt", constants.W_OK);
+      await access(this.PATH + "/" + messageId + ".json", constants.W_OK);
       return true;
     } catch (error) {
       return false;
     }
   }
-  async readMessage(messageId: string): Promise<string> {
+  async readMessage(messageId: string): Promise<burnMessage | null> {
     try {
-      const message = await readFile(this.PATH + "/" + messageId + ".txt", {
+      const message = await readFile(this.PATH + "/" + messageId + ".json", {
         encoding: "utf8",
       });
       if (typeof message === undefined) {
-        return "undefined";
+        return null;
       } else {
-        return message;
+        return JSON.parse(message);
       }
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
+
+  async updateMessage(messageId: string): Promise<void> {
+    try {
+      const message = await this.readMessage(messageId);
+      if (message && typeof message.countdown !== undefined) {
+        message.countdown--;
+      }
+      if (message) {
+        await this.saveMessage(messageId, message);
+      }
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  async saveMessage(messageId: string, message: burnMessage): Promise<void> {
+    try {
+      await writeFile(
+        this.PATH + "/" + messageId + ".json",
+        JSON.stringify(message),
+        {
+          encoding: "utf8",
+        },
+      );
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
   async deleteMessage(messageId: string): Promise<void> {
     try {
-      await rm(this.PATH + "/" + messageId + ".txt");
+      await rm(this.PATH + "/" + messageId + ".json");
     } catch (error) {
       console.error(error);
       throw error;
@@ -80,13 +130,14 @@ export class MessageService {
     try {
       const id = uuidv4();
       const fruit = fruits[Math.floor(Math.random() * fruits.length)];
-      await writeFile(
-        this.PATH + "/" + id + ".txt",
+
+      const message = new burnMessage(
         `you should try out ${fruit.fruit} ${fruit.emoji}`,
-        {
-          encoding: "utf8",
-        },
       );
+
+      await writeFile(this.PATH + "/" + id + ".json", JSON.stringify(message), {
+        encoding: "utf8",
+      });
       return id;
     } catch (error) {
       console.error(error);

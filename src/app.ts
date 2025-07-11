@@ -29,7 +29,7 @@ app.get("/message/:id", async (req: Request, res: Response) => {
     const message = await messageService.getMessage(req.params.id);
     res.render("message.html", {
       id: req.params.id,
-      message,
+      message: message?.message,
     });
   } catch (error) {
     res.status(404).render("404.html");
