@@ -44,7 +44,7 @@ export class MessageService {
         async (message) => {
           await this.updateMessage(messageId);
           if (message && typeof message.countdown !== undefined) {
-            if (message?.countdown < 1) {
+            if (message?.countdown <= 1) {
               await this.deleteMessage(messageId);
             }
             return message;

@@ -1,5 +1,12 @@
 {% if link.length > 0 %}
-  <a href="{{ link }}">read secret message (maximum 3 times)</a>
+  <a href="{{ link }}">read secret message now (maximum 3 times)</a>
+  <br />
+  or later using this link: localhost:3001{{ link }}
+  <button
+    onclick="navigator.clipboard.writeText('localhost:3001{{ link }}'); alert('Link copied to clipboard')"
+  >
+    Copy to Clipboard
+  </button>
 {% else %}
   Hi, there are no messages for you, yet.
 {% endif %}
