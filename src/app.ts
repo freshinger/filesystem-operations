@@ -25,12 +25,15 @@ app.get("/", async (req: Request, res: Response) => {
 
 app.get("/message/:id", async (req: Request, res: Response) => {
   const messageService = new MessageService();
-  const message = await messageService.getMessage(req.params.id);
-
-  res.render("message.html", {
-    id: req.params.id,
-    message,
-  });
+  try {
+    const message = await messageService.getMessage(req.params.id);
+    res.render("message.html", {
+      id: req.params.id,
+      message,
+    });
+  } catch (error) {
+    res.status(404).render("404.html");
+  }
 });
 
 app.listen(port, () => {

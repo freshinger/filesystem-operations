@@ -40,13 +40,13 @@ export class MessageService {
       .catch(async (error) => {
         console.error(error);
         await addLogMessage(error);
-        return "error";
+        throw error;
       });
   }
 
   async MessageExists(messageId: string): Promise<boolean> {
     try {
-      await access(this.PATH + "/" + messageId + ".txt", constants.F_OK);
+      await access(this.PATH + "/" + messageId + ".txt", constants.W_OK);
       return true;
     } catch (error) {
       return false;
