@@ -22,9 +22,11 @@
     {% endblock %}
     {% block header %}
     {% endblock %}
-    {% block main %}
-      {% include "main.html" %}
-    {% endblock %}
+    <main class="container">
+      {% block main %}
+        {% include "main.html" %}
+      {% endblock %}
+    </main>
     {% block footer %}
     {% endblock %}
   </body>

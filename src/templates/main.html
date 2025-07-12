@@ -1,13 +1,24 @@
 {% if link.length > 0 %}
   <a href="{{ link }}">read secret message now (maximum 3 times)</a>
   <br />
-  or later using this link: localhost:3001{{ link }}
+  or share the message using this link: localhost:3001{{ link }}
   <button
     onclick="navigator.clipboard.writeText('localhost:3001{{ link }}'); alert('Link copied to clipboard')"
   >
     Copy to Clipboard
   </button>
+{% elif error.length > 0 %}
+  {{ error }}
 {% else %}
-  Hi, there are no messages for you, yet.
+  Hi, please leave a message.
 {% endif %}
 {# TODO: Eingabefeld, sodass Benutzer einen Text hinterlegen können #}
+<form method="post" action="/message">
+  <fieldset>
+    <label>
+      Nachricht
+      <input type="text" name="message" />
+    </label>
+  </fieldset>
+  <input type="submit" value="anlegen" />
+</form>

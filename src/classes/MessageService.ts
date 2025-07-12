@@ -22,6 +22,10 @@ class burnMessage implements disposableMessage {
 
 export class MessageService {
   private PATH = path.join(__dirname, "..", "..", "messages");
+  message: string = "";
+  constructor(message: string = "") {
+    this.message = message;
+  }
 
   async getMessage(messageId: string): Promise<burnMessage | null> {
     return this.MessageExists(messageId)
@@ -132,7 +136,8 @@ export class MessageService {
       const fruit = fruits[Math.floor(Math.random() * fruits.length)];
 
       const message = new burnMessage(
-        `you should try out ${fruit.fruit} ${fruit.emoji}`,
+        this.message,
+        //`you should try out ${fruit.fruit} ${fruit.emoji}`,
       );
 
       await writeFile(this.PATH + "/" + id + ".json", JSON.stringify(message), {
