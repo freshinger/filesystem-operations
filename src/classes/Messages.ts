@@ -21,7 +21,7 @@ class burnMessage implements disposableMessage {
   }
 }
 
-export class MessageService {
+export class Messages {
   private PATH = path.join(__dirname, "..", "..", "messages");
   message: string;
   password: string;
@@ -50,25 +50,19 @@ export class MessageService {
           return null;
         },
       )
-      .then(
-        (message) => {
-          if (
-            message?.password &&
-            message?.password.length > 0 &&
-            password.length == 0
-          ) {
-            console.log("here");
-            return Promise.reject("nopassword");
-          } else if (message?.password === password) {
-            return message;
-          } else {
-            throw new Error("wrongPassword");
-          }
-        },
-        (error) => {
-          console.log("in here");
-        },
-      )
+      .then((message) => {
+        if (
+          message?.password &&
+          message?.password.length > 0 &&
+          password.length == 0
+        ) {
+          return Promise.reject("nopassword");
+        } else if (message?.password === password) {
+          return message;
+        } else {
+          throw new Error("wrongPassword");
+        }
+      })
       .then(
         async (message) => {
           await this.updateMessage(messageId);
@@ -86,10 +80,7 @@ export class MessageService {
         },
       )
       .catch(async (error) => {
-        console.error("there");
         await addLogMessage(error);
-        console.log(error.message);
-        throw error;
       });
   }
 

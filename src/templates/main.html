@@ -4,39 +4,91 @@
   or share the message using this link:
   <span id="messageLink">{{ link }}</span>
   <button id="copyToClipboardButton">Copy to Clipboard</button>
-  <script src="/js/clickHandler.js"></script>
-{% elif error.length > 0 %}
-  {{ error | safe }}
-
-  <form method="post" action="/message">
+  <script src="/js/copyClickHandler.js"></script>
+{% elif (messageResult.IsInvalid) or (passwordResult.IsInvalid) %}
+  There was a problem with your request.
+  <form method="post" action="/">
     <fieldset>
-      <label>
+      <label
+        class="{{ 'pico-color-red-500' if messageResult.IsInvalid else '' }}"
+      >
         Message*
-        <textarea name="message" required></textarea>
+        <textarea
+          name="message"
+          required
+          aria-invalid="{{ 'true' if messageResult.IsInvalid else 'false' }}"
+        >
+{{ message }}</textarea
+        >
+        {% if messageResult.IsInvalid %}
+          <ul>
+            {% for err in messageResult.ErrorMessages %}
+              <li><small>{{ err }}</small></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
       </label>
-      <label>
+      <label for="passwordProtection">
+        <input
+          type="checkbox"
+          id="passwordProtection"
+          name="passwordProtection"
+          {{ "checked='true'" if passwordProtection else "" }}
+        />
+        set Password for Message
+      </label>
+
+      <label
+        id="passwordField"
+        {# class="{{ 'pico-color-red-500' if passwordResult.IsInvalid else '' }}" #}
+        class="{{ 'show' if passwordProtection else 'hide' }}"
+      >
         Password for the Message (min. 8 characters and the following characters
         are not allowed: &gt; &lt; &amp; ' " / )
-        <input type="text" name="password" />
+        <input
+          type="password"
+          name="password"
+          id="password"
+          aria-invalid="{{ 'true' if passwordResult.IsInvalid else 'false' }}"
+        />
+        {% if passwordResult.IsInvalid %}
+          <ul>
+            {% for err in passwordResult.ErrorMessages %}
+              <li><small>{{ err }}</small></li>
+            {% endfor %}
+          </ul>
+        {% endif %}
       </label>
     </fieldset>
-    <input type="submit" value="anlegen" />
+    <input type="submit" value="send" />
   </form>
+  <script src="/js/passwordClickHandler.js"></script>
 {% else %}
   Hi, please leave a message.
 
-  <form method="post" action="/message">
+  <form method="post" action="/">
     <fieldset>
       <label>
         Message*
         <textarea name="message" required></textarea>
       </label>
-      <label>
+      <label for="passwordProtection">
+        <input
+          type="checkbox"
+          id="passwordProtection"
+          name="passwordProtection"
+          checked="false"
+        />
+        set Password for Message
+      </label>
+
+      <label id="passwordField">
         Password for the Message (min. 8 characters and the following characters
         are not allowed: &gt; &lt; &amp; ' " / )
-        <input type="text" name="password" />
+        <input type="password" name="password" id="password" />
       </label>
     </fieldset>
-    <input type="submit" value="anlegen" />
+    <input type="submit" value="send" />
   </form>
+  <script src="/js/passwordClickHandler.js"></script>
 {% endif %}

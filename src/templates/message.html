@@ -2,8 +2,10 @@
 
 {% block main %}
   {% if message.length > 0 %}
-    Your Message is only for you and will be deleted from the server:
-    {{ message }}
+    The following message is for you and will be deleted from the server:
+    <form>
+      <textarea readonly>{{ message }}</textarea>
+    </form>
   {% else %}
     There is no Message for you at the moment!
   {% endif %}

@@ -17,7 +17,7 @@ export async function addLogMessage(message: string): Promise<void> {
 
 async function fileExists(): Promise<boolean> {
   try {
-    await access(LOG_FILE, constants.F_OK);
+    await access(LOG_FILE, constants.W_OK);
     return true;
   } catch (error) {
     return false;

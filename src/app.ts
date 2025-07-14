@@ -3,12 +3,13 @@ require("dotenv").config();
 import express, { Request, Response } from "express";
 import nunjucks from "nunjucks";
 import { logger } from "./middlewares/loggerMiddleware";
-import { MessageService } from "./classes/MessageService";
+import { Messages } from "./classes/Messages";
 import { readFileSync } from "node:fs";
 import https from "node:https";
 import http from "node:http";
 import helmet from "helmet";
 import { body, matchedData, validationResult } from "express-validator";
+import { FormValidationResponse } from "./classes/FormValidationResponse";
 
 const pathToKey = process.env.PRIVATE_KEY || "";
 const pathToCert = process.env.SERVER_CERT || "";
@@ -56,7 +57,7 @@ app.get("/", async (req: Request, res: Response) => {
 });
 
 app.post(
-  "/message",
+  "/",
   body("message")
     .notEmpty()
     .escape()
@@ -68,39 +69,43 @@ app.post(
     .escape()
     .isLength({ min: PASSWORD_MIN_LENGTH }),
   async (req: Request, res: Response) => {
-    console.log(req.body.message);
     const result = validationResult(req);
+    const messageResult = new FormValidationResponse();
+    const passwordResult = new FormValidationResponse();
+
     if (!result.isEmpty()) {
-      let errors: string[] = [];
       if (!req.body.message || req.body.message.length === 0) {
-        errors.push("Message was empty!");
+        messageResult.addMessage("Message was empty!");
+      } else if (req.body.message.length > MESSAGE_MAX_LENGTH) {
+        messageResult.addMessage("Message was too long!");
+      } else if (req.body.message.length < MESSAGE_MIN_LENGTH) {
+        messageResult.addMessage("Message was too short!");
       }
       if (!req.body.password || req.body.password.length === 0) {
-        errors.push("Password was empty!");
+        passwordResult.addMessage("Password was empty!");
+      } else if (req.body.password.length < PASSWORD_MIN_LENGTH) {
+        passwordResult.addMessage("Password was too short!");
+      } else if (!req.body.password.match(/^[^<>&'"\/]+$/)) {
+        passwordResult.addMessage("Password contains illegal characters!");
       }
-      if (req.body.message.length > MESSAGE_MAX_LENGTH) {
-        errors.push("Message was too long!");
+      let passwordProtection = false;
+      if (req.body.passwordProtection) {
+        passwordProtection = true;
       }
-      if (req.body.message.length < MESSAGE_MIN_LENGTH) {
-        errors.push("Message was too short!");
-      }
-      if (req.body.password.length < PASSWORD_MIN_LENGTH) {
-        errors.push("Password was too short!");
-      }
-      // if (!req.body.password.matches(/^[^<>&'"\/]+$/)) {
-      //   errors.push("Password contains illegal characters!");
-      // }
 
       return res.render("index.html", {
-        error: "Error!<br /> " + errors.join("<br />"),
+        message: req.body.message,
+        messageResult,
+        passwordResult,
+        passwordProtection,
       });
     } else {
       const data = matchedData(req);
       let messageService;
-      if (req.body.password.trim().length === 0) {
-        messageService = new MessageService(data.message);
+      if (req.body.password && req.body.password.trim().length === 0) {
+        messageService = new Messages(data.message);
       } else {
-        messageService = new MessageService(data.message, data.password);
+        messageService = new Messages(data.message, data.password);
       }
       const messageId = await messageService.createMessage();
 
@@ -126,11 +131,12 @@ app.post(
     const result = validationResult(req);
     if (!result.isEmpty()) {
       return res.render("messagePasswordProtected.html", {
+        id: req.params.id,
         error: "Wrong Password!<br /> ",
       });
     } else {
       const data = matchedData(req);
-      const messageService = new MessageService();
+      const messageService = new Messages();
       try {
         const message = await messageService.getMessage(
           req.params.id,
@@ -158,7 +164,7 @@ app.post(
 );
 
 app.get("/message/:id", async (req: Request, res: Response) => {
-  const messageService = new MessageService();
+  const messageService = new Messages();
   try {
     const message = await messageService.getMessage(req.params.id);
 
@@ -195,7 +201,3 @@ if (credentials.cert !== "" && credentials.key !== "") {
   httpServer.listen(http_port);
   console.log("running on http://localhost:" + http_port);
 }
-
-//app.listen(port, () => {
-//  console.log(`Example app listening on port ${port}`);
-//});
