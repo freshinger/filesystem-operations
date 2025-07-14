@@ -12,6 +12,9 @@ import { body, matchedData, validationResult } from "express-validator";
 
 const pathToKey = process.env.PRIVATE_KEY || "";
 const pathToCert = process.env.SERVER_CERT || "";
+const PASSWORD_MIN_LENGTH = 8;
+const MESSAGE_MAX_LENGTH = 1024;
+const MESSAGE_MIN_LENGTH = 3;
 
 let pKey = "";
 if (pathToKey != "") {
@@ -54,22 +57,54 @@ app.get("/", async (req: Request, res: Response) => {
 
 app.post(
   "/message",
-  body("message").notEmpty().escape().isString().isLength({ max: 600 }),
+  body("message")
+    .notEmpty()
+    .escape()
+    .isString()
+    .isLength({ max: MESSAGE_MAX_LENGTH, min: MESSAGE_MIN_LENGTH }),
+  body("password")
+    .if(body("password").notEmpty())
+    .matches(/^[^<>&'"\/]+$/)
+    .escape()
+    .isLength({ min: PASSWORD_MIN_LENGTH }),
   async (req: Request, res: Response) => {
     console.log(req.body.message);
     const result = validationResult(req);
     if (!result.isEmpty()) {
-      console.warn(result.array());
+      let errors: string[] = [];
+      if (!req.body.message || req.body.message.length === 0) {
+        errors.push("Message was empty!");
+      }
+      if (!req.body.password || req.body.password.length === 0) {
+        errors.push("Password was empty!");
+      }
+      if (req.body.message.length > MESSAGE_MAX_LENGTH) {
+        errors.push("Message was too long!");
+      }
+      if (req.body.message.length < MESSAGE_MIN_LENGTH) {
+        errors.push("Message was too short!");
+      }
+      if (req.body.password.length < PASSWORD_MIN_LENGTH) {
+        errors.push("Password was too short!");
+      }
+      // if (!req.body.password.matches(/^[^<>&'"\/]+$/)) {
+      //   errors.push("Password contains illegal characters!");
+      // }
+
       return res.render("index.html", {
-        error: "Fehler aufgetreten.",
+        error: "Error!<br /> " + errors.join("<br />"),
       });
     } else {
       const data = matchedData(req);
-      const messageService = new MessageService(data.message);
+      let messageService;
+      if (req.body.password.trim().length === 0) {
+        messageService = new MessageService(data.message);
+      } else {
+        messageService = new MessageService(data.message, data.password);
+      }
       const messageId = await messageService.createMessage();
 
       let link = `http://localhost:${http_port}/message/${messageId}`;
-      //TODO: link depending on http or https
       if (credentials.cert !== "" && credentials.key !== "") {
         link = `https://localhost:${https_port}/message/${messageId}`;
       }
@@ -81,16 +116,73 @@ app.post(
   },
 );
 
+app.post(
+  "/message/:id",
+  body("password")
+    .matches(/^[^<>&'"\/]+$/)
+    .escape()
+    .isLength({ min: PASSWORD_MIN_LENGTH }),
+  async (req: Request, res: Response) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res.render("messagePasswordProtected.html", {
+        error: "Wrong Password!<br /> ",
+      });
+    } else {
+      const data = matchedData(req);
+      const messageService = new MessageService();
+      try {
+        const message = await messageService.getMessage(
+          req.params.id,
+          data.password,
+        );
+
+        if (typeof message !== "string") {
+          res.render("message.html", {
+            id: req.params.id,
+            message: message?.message,
+          });
+        }
+      } catch (error) {
+        if (error instanceof Error && error.message == "wrongPassword") {
+          res.render("messagePasswordProtected.html", {
+            id: req.params.id,
+            error: "password is wrong!<br/>",
+          });
+        } else {
+          res.status(404).render("404.html");
+        }
+      }
+    }
+  },
+);
+
 app.get("/message/:id", async (req: Request, res: Response) => {
   const messageService = new MessageService();
   try {
     const message = await messageService.getMessage(req.params.id);
-    res.render("message.html", {
-      id: req.params.id,
-      message: message?.message,
-    });
+
+    if (typeof message == "string" && message == "nopassword") {
+      res.render("messagePasswordProtected.html", {
+        id: req.params.id,
+        error: "Message is password protected",
+      });
+    } else if (typeof message !== "string") {
+      res.render("message.html", {
+        id: req.params.id,
+        message: message?.message,
+      });
+    }
   } catch (error) {
-    res.status(404).render("404.html");
+    console.error("over here");
+    if (error instanceof Error && error.message == "wrongPassword") {
+      res.render("messagePasswordProtected.html", {
+        id: req.params.id,
+        error: "Message is password protected",
+      });
+    } else {
+      res.status(404).render("404.html");
+    }
   }
 });
 

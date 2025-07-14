@@ -2,7 +2,6 @@ import * as path from "node:path";
 import { access, rm, writeFile, constants, readFile } from "node:fs/promises";
 import { addLogMessage } from "../middlewares/loggerMiddleware";
 import { v4 as uuidv4 } from "uuid";
-import * as fruits from "../data/fruits.json";
 
 interface disposableMessage {
   message: string;
@@ -11,9 +10,11 @@ interface disposableMessage {
 
 class burnMessage implements disposableMessage {
   message: string;
+  password: string;
   countdown: number = 1;
-  constructor(message: string) {
+  constructor(message: string, password: string) {
     this.message = message;
+    this.password = password;
     if (process.env.MESSAGE_TIMER) {
       this.countdown = Number.parseInt(process.env.MESSAGE_TIMER);
     }
@@ -22,12 +23,17 @@ class burnMessage implements disposableMessage {
 
 export class MessageService {
   private PATH = path.join(__dirname, "..", "..", "messages");
-  message: string = "";
-  constructor(message: string = "") {
+  message: string;
+  password: string;
+  constructor(password: string = "", message: string = "") {
     this.message = message;
+    this.password = password;
   }
 
-  async getMessage(messageId: string): Promise<burnMessage | null> {
+  async getMessage(
+    messageId: string,
+    password: string = "",
+  ): Promise<burnMessage | null | string> {
     return this.MessageExists(messageId)
       .then(
         async (messageExists: boolean) => {
@@ -45,6 +51,25 @@ export class MessageService {
         },
       )
       .then(
+        (message) => {
+          if (
+            message?.password &&
+            message?.password.length > 0 &&
+            password.length == 0
+          ) {
+            console.log("here");
+            return Promise.reject("nopassword");
+          } else if (message?.password === password) {
+            return message;
+          } else {
+            throw new Error("wrongPassword");
+          }
+        },
+        (error) => {
+          console.log("in here");
+        },
+      )
+      .then(
         async (message) => {
           await this.updateMessage(messageId);
           if (message && typeof message.countdown !== undefined) {
@@ -56,13 +81,14 @@ export class MessageService {
             return null;
           }
         },
-        () => {
-          return null;
+        (reason) => {
+          return reason;
         },
       )
       .catch(async (error) => {
-        console.error(error);
+        console.error("there");
         await addLogMessage(error);
+        console.log(error.message);
         throw error;
       });
   }
@@ -133,12 +159,8 @@ export class MessageService {
   async createMessage(): Promise<string> {
     try {
       const id = uuidv4();
-      const fruit = fruits[Math.floor(Math.random() * fruits.length)];
 
-      const message = new burnMessage(
-        this.message,
-        //`you should try out ${fruit.fruit} ${fruit.emoji}`,
-      );
+      const message = new burnMessage(this.password, this.message);
 
       await writeFile(this.PATH + "/" + id + ".json", JSON.stringify(message), {
         encoding: "utf8",

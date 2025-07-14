@@ -6,17 +6,37 @@
   <button id="copyToClipboardButton">Copy to Clipboard</button>
   <script src="/js/clickHandler.js"></script>
 {% elif error.length > 0 %}
-  {{ error }}
+  {{ error | safe }}
+
+  <form method="post" action="/message">
+    <fieldset>
+      <label>
+        Message*
+        <textarea name="message" required></textarea>
+      </label>
+      <label>
+        Password for the Message (min. 8 characters and the following characters
+        are not allowed: &gt; &lt; &amp; ' " / )
+        <input type="text" name="password" />
+      </label>
+    </fieldset>
+    <input type="submit" value="anlegen" />
+  </form>
 {% else %}
   Hi, please leave a message.
-{% endif %}
 
-<form method="post" action="/message">
-  <fieldset>
-    <label>
-      Nachricht
-      <input type="text" name="message" />
-    </label>
-  </fieldset>
-  <input type="submit" value="anlegen" />
-</form>
+  <form method="post" action="/message">
+    <fieldset>
+      <label>
+        Message*
+        <textarea name="message" required></textarea>
+      </label>
+      <label>
+        Password for the Message (min. 8 characters and the following characters
+        are not allowed: &gt; &lt; &amp; ' " / )
+        <input type="text" name="password" />
+      </label>
+    </fieldset>
+    <input type="submit" value="anlegen" />
+  </form>
+{% endif %}
