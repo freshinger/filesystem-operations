@@ -157,8 +157,14 @@ export class Messages {
 
   async createMessage(): Promise<string> {
     try {
-      const id = uuidv4();
-
+      let id = uuidv4();
+      while (true) {
+        if (await this.MessageExists(id)) {
+          id = uuidv4();
+        } else {
+          break;
+        }
+      }
       const message = new burnMessage(this.password, this.message);
 
       await writeFile(this.PATH + "/" + id + ".json", JSON.stringify(message), {

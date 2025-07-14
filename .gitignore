@@ -4,3 +4,4 @@ dist
 src/data/fruits.json
 logs
 messages/*
+todo.txt
