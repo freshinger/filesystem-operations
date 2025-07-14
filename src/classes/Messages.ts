@@ -41,7 +41,7 @@ export class Messages {
             await addLogMessage(
               "Message with id: " + messageId + " is nonexistent",
             );
-            return null;
+            return Promise.reject("");
           } else {
             return await this.readMessage(messageId);
           }
@@ -60,7 +60,7 @@ export class Messages {
         } else if (message?.password === password) {
           return message;
         } else {
-          throw new Error("wrongPassword");
+          return Promise.reject("");
         }
       })
       .then(

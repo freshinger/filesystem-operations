@@ -149,6 +149,8 @@ app.get("/message/:id", async (req: Request, res: Response) => {
         id: req.params.id,
         message: message?.message,
       });
+    } else {
+      res.status(404).render("404.html");
     }
   } catch (error) {
     res.status(404).render("404.html");
