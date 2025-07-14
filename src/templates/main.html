@@ -1,9 +1,9 @@
 {% if link.length > 0 %}
   <a href="{{ link }}">read secret message now (maximum 3 times)</a>
   <br />
-  or share the message using this link: localhost:3001{{ link }}
+  or share the message using this link: localhost:8443{{ link }}
   <button
-    onclick="navigator.clipboard.writeText('localhost:3001{{ link }}'); alert('Link copied to clipboard')"
+    onclick="navigator.clipboard.writeText('localhost:8443{{ link }}'); alert('Link copied to clipboard')"
   >
     Copy to Clipboard
   </button>
