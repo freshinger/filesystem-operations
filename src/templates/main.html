@@ -1,18 +1,16 @@
 {% if link.length > 0 %}
   <a href="{{ link }}">read secret message now (maximum 3 times)</a>
   <br />
-  or share the message using this link: localhost:8443{{ link }}
-  <button
-    onclick="navigator.clipboard.writeText('localhost:8443{{ link }}'); alert('Link copied to clipboard')"
-  >
-    Copy to Clipboard
-  </button>
+  or share the message using this link:
+  <span id="messageLink">{{ link }}</span>
+  <button id="copyToClipboardButton">Copy to Clipboard</button>
+  <script src="/js/clickHandler.js"></script>
 {% elif error.length > 0 %}
   {{ error }}
 {% else %}
   Hi, please leave a message.
 {% endif %}
-{# TODO: Eingabefeld, sodass Benutzer einen Text hinterlegen können #}
+
 <form method="post" action="/message">
   <fieldset>
     <label>

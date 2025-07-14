@@ -42,15 +42,13 @@ app.use(
     extended: true,
   }),
 ); // for consuming forms
+app.use(express.static("public"));
 
 /**
  * Routes
  */
 
 app.get("/", async (req: Request, res: Response) => {
-  //const messageService = new MessageService();
-  //const messageId = await messageService.createMessage();
-
   res.render("index.html", {});
 });
 
@@ -58,7 +56,6 @@ app.post(
   "/message",
   body("message").notEmpty().escape().isString().isLength({ max: 600 }),
   async (req: Request, res: Response) => {
-    //Todo sanitize post fields
     console.log(req.body.message);
     const result = validationResult(req);
     if (!result.isEmpty()) {
@@ -70,8 +67,15 @@ app.post(
       const data = matchedData(req);
       const messageService = new MessageService(data.message);
       const messageId = await messageService.createMessage();
+
+      let link = `http://localhost:${http_port}/message/${messageId}`;
+      //TODO: link depending on http or https
+      if (credentials.cert !== "" && credentials.key !== "") {
+        link = `https://localhost:${https_port}/message/${messageId}`;
+      }
+
       return res.render("index.html", {
-        link: `/message/${messageId}`,
+        link,
       });
     }
   },
