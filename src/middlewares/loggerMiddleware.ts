@@ -30,7 +30,9 @@ async function createLogFile(): Promise<void> {
       encoding: "utf8",
     });
   } catch (error) {
-    console.error(error);
+    if (process.env.ENVIRONMENT == "DEV") {
+      console.error(error);
+    }
   }
 }
 fileExists()
@@ -40,7 +42,9 @@ fileExists()
     }
   })
   .catch((error) => {
-    console.error(error);
+    if (process.env.ENVIRONMENT == "DEV") {
+      console.error(error);
+    }
   });
 
 /**

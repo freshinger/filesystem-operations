@@ -103,7 +103,9 @@ export class Messages {
         return JSON.parse(message);
       }
     } catch (error) {
-      console.error(error);
+      if (process.env.ENVIRONMENT == "DEV") {
+        console.error(error);
+      }
       throw error;
     }
   }
@@ -118,7 +120,9 @@ export class Messages {
         await this.saveMessage(messageId, message);
       }
     } catch (error) {
-      console.error(error);
+      if (process.env.ENVIRONMENT == "DEV") {
+        console.error(error);
+      }
       throw error;
     }
   }
@@ -133,7 +137,9 @@ export class Messages {
         },
       );
     } catch (error) {
-      console.error(error);
+      if (process.env.ENVIRONMENT == "DEV") {
+        console.error(error);
+      }
       throw error;
     }
   }
@@ -142,7 +148,9 @@ export class Messages {
     try {
       await rm(this.PATH + "/" + messageId + ".json");
     } catch (error) {
-      console.error(error);
+      if (process.env.ENVIRONMENT == "DEV") {
+        console.error(error);
+      }
       throw error;
     }
   }
@@ -158,7 +166,9 @@ export class Messages {
       });
       return id;
     } catch (error) {
-      console.error(error);
+      if (process.env.ENVIRONMENT == "DEV") {
+        console.error(error);
+      }
       throw error;
     }
   }
