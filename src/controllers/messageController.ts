@@ -1,5 +1,5 @@
 import { validationResult, matchedData } from "express-validator";
-import { Messages } from "../classes/Messages";
+import { MessageModel } from "../models/MessageModel";
 import type { Request, Response } from "express";
 
 export const postMesssageController = async (req: Request, res: Response) => {
@@ -11,9 +11,9 @@ export const postMesssageController = async (req: Request, res: Response) => {
     });
   } else {
     const data = matchedData(req);
-    const messageService = new Messages();
+    const messageModel = new MessageModel();
     try {
-      const message = await messageService.getMessage(
+      const message = await messageModel.getMessage(
         req.params.id,
         data.password,
       );
@@ -31,9 +31,9 @@ export const postMesssageController = async (req: Request, res: Response) => {
 };
 
 export const getMessageController = async (req: Request, res: Response) => {
-  const messageService = new Messages();
+  const messageModel = new MessageModel();
   try {
-    const message = await messageService.getMessage(req.params.id);
+    const message = await messageModel.getMessage(req.params.id);
 
     if (typeof message == "string" && message == "nopassword") {
       res.render("../templates/messagePasswordProtected.html", {

@@ -7,15 +7,7 @@ import { readFileSync } from "node:fs";
 import https from "node:https";
 import http from "node:http";
 import helmet from "helmet";
-import { body } from "express-validator";
-import {
-  getIndexController,
-  postIndexController,
-} from "./controllers/indexController";
-import {
-  getMessageController,
-  postMesssageController,
-} from "./controllers/messageController";
+import publicRoutes from "./routes/publicRoutes";
 
 const pathToKey = process.env.PRIVATE_KEY || "";
 const pathToCert = process.env.SERVER_CERT || "";
@@ -56,52 +48,10 @@ app.use(
   }),
 ); // for consuming forms
 app.use(express.static("public"));
-
 /**
  * Routes
  */
-
-/**
- * Index route - main entry point in the app
- *
- * shows a form to send messages optionally password protected.
- */
-app.get("/", getIndexController);
-
-/**
- * Index Post route - for sending the message optionally including a password
- */
-app.post(
-  "/",
-  body("message")
-    .notEmpty()
-    .escape()
-    .isString()
-    .isLength({ max: MESSAGE_MAX_LENGTH, min: MESSAGE_MIN_LENGTH }),
-  body("password")
-    .if(body("password").notEmpty())
-    .matches(/^[^<>&'"\/]+$/)
-    .escape()
-    .isLength({ min: PASSWORD_MIN_LENGTH }),
-  postIndexController,
-);
-
-/**
- * password protected route to the message
- */
-app.post(
-  "/message/:id",
-  body("password")
-    .matches(/^[^<>&'"\/]+$/)
-    .escape()
-    .isLength({ min: PASSWORD_MIN_LENGTH }),
-  postMesssageController,
-);
-
-/**
- *  route to the message without a set password
- */
-app.get("/message/:id", getMessageController);
+app.use(publicRoutes);
 
 if (credentials.cert !== "" && credentials.key !== "") {
   const httpsServer = https.createServer(credentials, app);

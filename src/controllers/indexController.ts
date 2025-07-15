@@ -1,7 +1,7 @@
 import { matchedData, validationResult } from "express-validator";
 import { ValidationService } from "../Services/ValidationService";
 import type { Request, Response } from "express";
-import { Messages } from "../classes/Messages";
+import { MessageModel } from "../models/MessageModel";
 import { credentials, domain, http_port, https_port } from "../app";
 
 export const getIndexController = (req: Request, res: Response) => {
@@ -19,13 +19,13 @@ export const postIndexController = async (req: Request, res: Response) => {
     );
   } else {
     const data = matchedData(req);
-    let messageService;
+    let messageModel;
     if (req.body.password && req.body.password.trim().length === 0) {
-      messageService = new Messages(data.message);
+      messageModel = new MessageModel(data.message);
     } else {
-      messageService = new Messages(data.message, data.password);
+      messageModel = new MessageModel(data.message, data.password);
     }
-    const messageId = await messageService.createMessage();
+    const messageId = await messageModel.createMessage();
 
     let link = `http://${domain}:${http_port}/message/${messageId}`;
     if (credentials.cert !== "" && credentials.key !== "") {

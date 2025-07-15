@@ -21,7 +21,7 @@ class burnMessage implements disposableMessage {
   }
 }
 
-export class Messages {
+export class MessageModel {
   private PATH = path.join(__dirname, "..", "..", "messages");
   message: string;
   password: string;
