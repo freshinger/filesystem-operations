@@ -5,7 +5,7 @@ import { Messages } from "../classes/Messages";
 import { credentials, domain, http_port, https_port } from "../app";
 
 export const getIndexController = (req: Request, res: Response) => {
-  res.render("index.html", {});
+  res.render("../templates/index.html", {});
 };
 
 export const postIndexController = async (req: Request, res: Response) => {
@@ -13,7 +13,10 @@ export const postIndexController = async (req: Request, res: Response) => {
 
   if (!result.isEmpty()) {
     const validationService = new ValidationService();
-    return res.render("index.html", validationService.validateMessage(req));
+    return res.render(
+      "../templates/index.html",
+      validationService.validateMessage(req),
+    );
   } else {
     const data = matchedData(req);
     let messageService;
@@ -29,7 +32,7 @@ export const postIndexController = async (req: Request, res: Response) => {
       link = `https://${domain}:${https_port}/message/${messageId}`;
     }
 
-    return res.render("index.html", {
+    return res.render("../templates/index.html", {
       link,
     });
   }

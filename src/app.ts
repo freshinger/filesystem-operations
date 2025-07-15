@@ -61,8 +61,16 @@ app.use(express.static("public"));
  * Routes
  */
 
+/**
+ * Index route - main entry point in the app
+ *
+ * shows a form to send messages optionally password protected.
+ */
 app.get("/", getIndexController);
 
+/**
+ * Index Post route - for sending the message optionally including a password
+ */
 app.post(
   "/",
   body("message")
@@ -78,6 +86,9 @@ app.post(
   postIndexController,
 );
 
+/**
+ * password protected route to the message
+ */
 app.post(
   "/message/:id",
   body("password")
@@ -87,12 +98,15 @@ app.post(
   postMesssageController,
 );
 
+/**
+ *  route to the message without a set password
+ */
 app.get("/message/:id", getMessageController);
 
 if (credentials.cert !== "" && credentials.key !== "") {
   const httpsServer = https.createServer(credentials, app);
   httpsServer.listen(https_port);
-  console.log(`running on https://${domain}:${https_port}}`);
+  console.log(`running on https://${domain}:${https_port}`);
 } else {
   const httpServer = http.createServer(app);
   httpServer.listen(http_port);
