@@ -1,15 +1,13 @@
 require("dotenv").config();
 
-import express, { Request, Response } from "express";
+import express from "express";
 import nunjucks from "nunjucks";
 import { logger } from "./middlewares/loggerMiddleware";
-import { Messages } from "./classes/Messages";
 import { readFileSync } from "node:fs";
 import https from "node:https";
 import http from "node:http";
 import helmet from "helmet";
-import { body, matchedData, validationResult } from "express-validator";
-import { ValidationService } from "./Services/ValidationService";
+import { body } from "express-validator";
 import {
   getIndexController,
   postIndexController,
